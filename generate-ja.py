@@ -13,9 +13,9 @@ from reportlab.pdfgen import canvas
 import os
 
 # CMU Serif フォント（Computer Modern）を登録
-pdfmetrics.registerFont(TTFont('CMU-Roman', 'NotoSansJP-Regular.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Bold', 'NotoSansJP-Bold.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Italic', 'NotoSansJP-Light.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Roman', 'assets/NotoSansJP-Regular.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Bold', 'assets/NotoSansJP-Bold.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Italic', 'assets/NotoSansJP-Light.ttf'))
 
 # --- PDFから抽出されたコンテンツ ---
 pages_content = [
@@ -370,7 +370,7 @@ def add_page_number(canvas, doc):
     canvas.restoreState()
 
 # --- ドキュメント構築 ---
-output_filename = "dompii-whitepaper_ja.pdf"
+output_filename = "docs/dompii-whitepaper_ja.pdf"
 
 # PDFにメタデータを追加するためのキャンバスカスタマイズを定義
 class PdfDocTemplate(SimpleDocTemplate):

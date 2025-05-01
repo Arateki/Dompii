@@ -13,9 +13,9 @@ from reportlab.pdfgen import canvas
 import os
 
 # Register CMU Serif fonts (Computer Modern)
-pdfmetrics.registerFont(TTFont('CMU-Roman', 'cmu.serif-roman.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Bold', 'cmu.serif-bold.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Italic', 'cmu.serif-italic.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Roman', 'assets/cmu.serif-roman.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Bold', 'assets/cmu.serif-bold.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Italic', 'assets/cmu.serif-italic.ttf'))
 
 # --- Content Extracted from PDF ---
 pages_content = [
@@ -397,7 +397,7 @@ def add_page_number(canvas, doc):
     canvas.restoreState()
 
 # --- Document Construction ---
-output_filename = "dompii-whitepaper_en.pdf"
+output_filename = "docs/dompii-whitepaper_en.pdf"
 
 # Define canvas customization to add PDF metadata
 class PdfDocTemplate(SimpleDocTemplate):

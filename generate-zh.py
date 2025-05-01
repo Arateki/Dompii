@@ -13,9 +13,9 @@ from reportlab.pdfgen import canvas
 import os
 
 # 注册CMU Serif字体（Computer Modern）
-pdfmetrics.registerFont(TTFont('CMU-Roman', 'NotoSerifSC-Regular.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Bold', 'NotoSerifSC-Bold.ttf'))
-pdfmetrics.registerFont(TTFont('CMU-Italic', 'NotoSerifSC-Light.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Roman', 'assets/NotoSerifSC-Regular.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Bold', 'assets/NotoSerifSC-Bold.ttf'))
+pdfmetrics.registerFont(TTFont('CMU-Italic', 'assets/NotoSerifSC-Light.ttf'))
 
 # --- 从PDF提取的内容 ---
 pages_content = [
@@ -313,7 +313,7 @@ def add_page_number(canvas, doc):
     canvas.restoreState()
 
 # --- 文档构建 ---
-output_filename = "dompii-whitepaper_zh.pdf"
+output_filename = "docs/dompii-whitepaper_zh.pdf"
 
 # 定义canvas自定义以添加PDF元数据
 class PdfDocTemplate(SimpleDocTemplate):
