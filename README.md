@@ -85,5 +85,5 @@ MIT License – See [`LICENSE`](./LICENSE) for full details.
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/Arateki">Arateki</a> — empowering autodidacts worldwide.</sub>
+  <sub>Built by <a href="https://github.com/Arateki">Arateki</a> — empowering minds worldwide.</sub>
 </p>
