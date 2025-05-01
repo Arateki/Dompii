@@ -9,6 +9,7 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 import os
 
 # Register CMU Serif fonts (Computer Modern)
@@ -396,8 +397,27 @@ def add_page_number(canvas, doc):
     canvas.restoreState()
 
 # --- Document Construction ---
-output_filename = "dompii_whitepaper_recreated_en.pdf"
-doc = SimpleDocTemplate(
+output_filename = "dompii-whitepaper_en.pdf"
+
+# Define canvas customization to add PDF metadata
+class PdfDocTemplate(SimpleDocTemplate):
+    def __init__(self, *args, **kwargs):
+        SimpleDocTemplate.__init__(self, *args, **kwargs)
+        self.title = "DomPII: A Self-Learning System with AI"
+        self.author = "Yan Vidal"
+        self.subject = "DomPII Whitepaper"
+        self.creator = "ReportLab PDF Library"
+        self.producer = "ReportLab PDF Library"
+
+    def handle_documentBegin(self):
+        SimpleDocTemplate.handle_documentBegin(self)
+        self.canv.setTitle(self.title)
+        self.canv.setAuthor(self.author)
+        self.canv.setSubject(self.subject)
+        self.canv.setCreator(self.creator)
+        self.canv.setProducer(self.producer)
+
+doc = PdfDocTemplate(
     output_filename, 
     pagesize=letter,
     leftMargin=left_margin,

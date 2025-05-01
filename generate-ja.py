@@ -9,6 +9,7 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 import os
 
 # CMU Serif フォント（Computer Modern）を登録
@@ -369,8 +370,27 @@ def add_page_number(canvas, doc):
     canvas.restoreState()
 
 # --- ドキュメント構築 ---
-output_filename = "dompii_whitepaper_recreated_ja.pdf"
-doc = SimpleDocTemplate(
+output_filename = "dompii-whitepaper_ja.pdf"
+
+# PDFにメタデータを追加するためのキャンバスカスタマイズを定義
+class PdfDocTemplate(SimpleDocTemplate):
+    def __init__(self, *args, **kwargs):
+        SimpleDocTemplate.__init__(self, *args, **kwargs)
+        self.title = "DomPII: AIを活用した自己学習システム"
+        self.author = "Yan Vidal"
+        self.subject = "DomPII ホワイトペーパー"
+        self.creator = "ReportLab PDF Library"
+        self.producer = "ReportLab PDF Library"
+
+    def handle_documentBegin(self):
+        SimpleDocTemplate.handle_documentBegin(self)
+        self.canv.setTitle(self.title)
+        self.canv.setAuthor(self.author)
+        self.canv.setSubject(self.subject)
+        self.canv.setCreator(self.creator)
+        self.canv.setProducer(self.producer)
+
+doc = PdfDocTemplate(
     output_filename, 
     pagesize=letter,
     leftMargin=left_margin,
