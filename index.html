@@ -8,6 +8,93 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Estilo para o player de áudio customizado -->
+  <style type="text/css">
+    /* Estilos para os sliders customizados */
+    #progress-slider,
+    #volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    
+    /* Trilho dos sliders */
+    #progress-slider::-webkit-slider-runnable-track,
+    #volume-slider::-webkit-slider-runnable-track {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: transparent;
+      border-radius: 10px;
+    }
+    
+    /* Controles deslizantes (thumb) para volume que sempre tem valor */
+    #volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: -500px 0 0 492px rgba(255, 255, 255, 0.7);
+    }
+    
+    /* Controle deslizante para progresso (sem box-shadow quando no início) */
+    #progress-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: -500px 0 0 492px rgba(255, 255, 255, 0.7);
+      margin-top: -2px;
+    }
+    
+    /* Quando no valor 0, remove o preenchimento */
+    #progress-slider[value="0"]::-webkit-slider-thumb {
+      box-shadow: none;
+    }
+    
+    /* Para Firefox */
+    #progress-slider::-moz-range-track,
+    #volume-slider::-moz-range-track {
+      height: 8px;
+      background: transparent;
+      border-radius: 10px;
+    }
+    
+    #progress-slider::-moz-range-thumb,
+    #volume-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: white;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    
+    #progress-slider::-moz-range-progress,
+    #volume-slider::-moz-range-progress {
+      background-color: rgba(255, 255, 255, 0.7);
+      height: 8px;
+      border-radius: 10px;
+    }
+    
+    /* Arredonda as bordas */
+    .custom-audio-player {
+      border-radius: 12px;
+      backdrop-filter: blur(3px);
+      background-color: rgba(8, 9, 15, 0.2);
+    }
+  </style>
+  
   <style>
     :root {
       --dark-bg: #08090f;
@@ -112,6 +199,235 @@
         max-width: 100%; /* Garante que não ultrapasse a largura do container */
         object-fit: contain; /* Garante que a imagem caiba sem distorção */
     }
+    
+    /* --- Estilos para o Player de Áudio --- */
+    audio#podcast-player {
+        border-radius: 28px;
+        height: 44px;
+        background-color: transparent !important;
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: none !important;
+        color-scheme: dark; /* Sugere esquema de cores escuras para o player */
+        --seek-before-width: 0%;
+        --volume-before-width: 100%;
+        --seek-color: white;
+        --volume-color: white;
+    }
+    
+    /* Estilos simples para melhorar a visualização */
+    @media (max-width: 640px) {
+        audio#podcast-player {
+            width: 100%;
+        }
+    }
+    
+    /* Estilização específica para melhorar a aparência do player em diferentes navegadores */
+    audio#podcast-player::-webkit-media-controls,
+    audio#podcast-player::-webkit-media-controls-enclosure,
+    audio#podcast-player::-webkit-media-controls-panel {
+        background-color: transparent !important;
+        background-image: none !important;
+        padding: 0 15px;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    
+    audio#podcast-player::-webkit-media-controls-play-button {
+        background-color: rgba(191, 63, 63, 0.8) !important;
+        border-radius: 50%;
+        transform: scale(1.2);
+        margin-right: 10px;
+    }
+    
+    /* Override específico para o Chrome e navegadores WebKit */
+    audio::-webkit-media-slider-container,
+    audio::-webkit-media-slider-thumb {
+        filter: invert(1) !important;
+    }
+    
+    /* Override específico para o Chrome e navegadores WebKit (Progress Bar) */
+    audio::-webkit-media-controls-timeline {
+        filter: invert(1) !important;
+        background-color: #4a4a4a !important;
+    }
+    
+    /* Override específico para o Chrome e navegadores WebKit (Volume Slider) */
+    audio::-webkit-media-controls-volume-slider {
+        filter: invert(1) !important;
+        background-color: #4a4a4a !important;
+    }
+    
+    audio#podcast-player::-webkit-media-controls-timeline-container,
+    audio#podcast-player::-webkit-media-controls-timeline {
+        background-color: transparent !important;
+        border-radius: 25px;
+        margin-left: 12px;
+        margin-right: 12px;
+        height: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-slider-runnable-track {
+        background-color: transparent !important;
+    }
+    
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-slider-thumb {
+        background-color: white !important;
+        filter: brightness(0) invert(1);
+    }
+    
+    audio#podcast-player::-webkit-media-controls-current-time-display,
+    audio#podcast-player::-webkit-media-controls-time-remaining-display {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 14px;
+        margin: 0 5px;
+    }
+    
+    audio#podcast-player::-webkit-media-controls-volume-slider-container,
+    audio#podcast-player::-webkit-media-controls-volume-slider {
+        background-color: transparent !important;
+        background-image: none !important;
+        border-radius: 25px;
+        padding-left: 8px;
+        padding-right: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    audio#podcast-player::-webkit-media-controls-volume-slider::-webkit-slider-runnable-track {
+        background-color: transparent !important;
+    }
+    
+    audio#podcast-player::-webkit-media-controls-mute-button,
+    audio#podcast-player::-webkit-media-controls-toggle-closed-captions-button,
+    audio#podcast-player::-webkit-media-controls-fullscreen-button {
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+    }
+    
+    /* Firefox specific */
+    @-moz-document url-prefix() {
+        audio#podcast-player {
+            background-color: transparent !important;
+        }
+    }
+    
+    /* Edge & IE specific */
+    @supports (-ms-ime-align:auto) {
+        audio#podcast-player {
+            background-color: transparent !important;
+        }
+    }
+    
+    /* Estilo adicional para forçar a transparência em todos os elementos */
+    .audio-transparent::-webkit-media-controls-enclosure {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+    
+    /* Para Safari e navegadores baseados em WebKit */
+    @media screen and (-webkit-min-device-pixel-ratio: 0) {
+        audio {
+            -webkit-appearance: none;
+            margin: 0;
+            background: transparent !important;
+        }
+        
+        audio::-webkit-media-controls-enclosure,
+        audio::-webkit-media-controls-panel {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+    }
+    
+    /* Tentar novamente com especificidade maior */
+    audio#podcast-player::-webkit-media-controls-enclosure,
+    audio.audio-transparent::-webkit-media-controls-panel,
+    audio.audio-transparent::-webkit-media-controls-enclosure {
+        background-color: transparent !important;
+        background-image: none !important;
+        -webkit-appearance: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Forçar cor branca para a barra de progresso e volume */
+    audio#podcast-player::-webkit-media-controls-timeline-container,
+    audio#podcast-player::-webkit-media-controls-timeline,
+    audio#podcast-player::-webkit-media-controls-volume-slider-container,
+    audio#podcast-player::-webkit-media-controls-volume-slider {
+        accent-color: white !important;
+    }
+    
+    audio#podcast-player::-webkit-slider-thumb,
+    audio#podcast-player::-webkit-media-controls-volume-slider::-webkit-slider-thumb,
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-slider-thumb {
+        background-color: white !important;
+        border-color: white !important;
+    }
+    
+    /* Pseudo elementos para alterar o fundo */
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-slider-runnable-track,
+    audio#podcast-player::-webkit-media-controls-volume-slider::-webkit-slider-runnable-track {
+        background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    /* Para Firefox */
+    audio#podcast-player::-moz-range-track {
+        background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    audio#podcast-player::-moz-range-thumb {
+        background-color: white !important;
+    }
+    
+    /* Adicionando regras gerais para inputs range */
+    input[type="range"]::-webkit-slider-runnable-track {
+        background-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        background-color: white !important;
+    }
+    
+    /* Regras para progress e tinta na barra de progresso */
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-progress-value,
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-progress-bar,
+    audio#podcast-player::-webkit-media-controls-timeline::-webkit-progress-inner-element {
+        background-color: white !important;
+    }
+    
+    /* Para Chrome, Edge, e Safari */
+    audio::-webkit-media-controls-current-time-display,
+    audio::-webkit-media-controls-time-remaining-display {
+        color: white !important;
+    }
+    
+    /* Adicional para a barra de volume */
+    audio#podcast-player::-webkit-media-controls-volume-control-container,
+    audio#podcast-player::-webkit-media-controls-volume-control-hover-background {
+        filter: brightness(0) invert(1);
+    }
+    
+    /* Versão simplificada para melhorar visualização em mobile */
+    @media (max-width: 640px) {
+        /* Estilos mobile - esconde o controle de volume para priorizar a barra de progresso */
+        audio#podcast-player::-webkit-media-controls-volume-slider,
+        audio#podcast-player::-webkit-media-controls-volume-slider-container,
+        audio#podcast-player::-webkit-media-controls-mute-button {
+            display: none !important;
+        }
+        
+        /* Ajustes para o container */
+        .audio-player-container {
+            overflow: hidden;
+            padding: 5px;
+        }
+        
+        /* Garante que o controle de tempo tenha mais espaço */
+        audio#podcast-player::-webkit-media-controls-timeline {
+            width: 100% !important;
+        }
+    }
 
   </style>
 </head>
@@ -191,6 +507,180 @@
                </svg>
                <span>Whitepaper</span> </a>
         </div>
+        
+        <div class="mt-6 backdrop-blur-[2px] rounded-lg p-4 w-full mx-auto fade-up border border-white/10" style="animation-delay:.4s">
+          <div class="text-center mb-3">
+            <span data-i18n="podcastTitle" class="font-semibold text-lg text-white">Resumo do whitepaper</span>
+          </div>
+          
+          <!-- Implementação de player de áudio customizado -->
+          <div class="custom-audio-player w-full border border-white/10 rounded-lg p-3">
+            <!-- Áudio nativo oculto -->
+            <audio id="podcast-player" class="hidden">
+              <source id="podcast-source" src="" type="audio/wav">
+              <span data-i18n="audioNotSupported">Your browser does not support the audio element.</span>
+            </audio>
+            
+            <!-- Interface customizada -->
+            <div class="flex items-center justify-between mb-3">
+              <!-- Tempo atual / duração (agora à esquerda) -->
+              <div class="text-white text-sm font-mono">
+                <span id="current-time">0:00</span> / <span id="duration">0:00</span>
+              </div>
+              
+              <!-- Botão play/pause (agora no centro) -->
+              <button id="play-pause-btn" class="flex items-center justify-center w-10 h-10 bg-[var(--brand-red)] rounded-full focus:outline-none">
+                <!-- Ícone play -->
+                <svg id="play-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                </svg>
+                <!-- Ícone pause (inicialmente escondido) - cor primária igual ao fundo circular -->
+                <svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white hidden" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                  <path d="M9 8v8M15 8v8" stroke="var(--brand-red)" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+              
+              <!-- Controle de volume (permanece à direita) -->
+              <div class="flex items-center">
+                <button id="mute-btn" class="text-white mr-2 focus:outline-none">
+                  <!-- Ícone volume -->
+                  <svg id="volume-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071a1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243a1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828a1 1 0 010-1.415z" clip-rule="evenodd" />
+                  </svg>
+                  <!-- Ícone mudo (inicialmente escondido) -->
+                  <svg id="mute-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="1" class="w-20 h-1 bg-white/20 rounded-full appearance-none">
+              </div>
+            </div>
+            
+            <!-- Barra de progresso (em linha separada) -->
+            <div class="w-full px-1">
+              <input id="progress-slider" type="range" min="0" max="100" value="0" step="0.1" class="w-full h-2 bg-white/20 rounded-full appearance-none">
+            </div>
+          </div>
+          
+          <!-- Script para controlar o player customizado -->
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const audio = document.getElementById('podcast-player');
+              const playPauseBtn = document.getElementById('play-pause-btn');
+              const playIcon = document.getElementById('play-icon');
+              const pauseIcon = document.getElementById('pause-icon');
+              const progressSlider = document.getElementById('progress-slider');
+              const currentTimeElement = document.getElementById('current-time');
+              const durationElement = document.getElementById('duration');
+              const volumeSlider = document.getElementById('volume-slider');
+              const muteBtn = document.getElementById('mute-btn');
+              const volumeIcon = document.getElementById('volume-icon');
+              const muteIcon = document.getElementById('mute-icon');
+              
+              // Função para formatar o tempo (segundos para MM:SS)
+              function formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+              }
+              
+              // Botão play/pause
+              playPauseBtn.addEventListener('click', function() {
+                if (audio.paused) {
+                  audio.play();
+                  playIcon.classList.add('hidden');
+                  pauseIcon.classList.remove('hidden');
+                } else {
+                  audio.pause();
+                  playIcon.classList.remove('hidden');
+                  pauseIcon.classList.add('hidden');
+                }
+              });
+              
+              // Atualiza o tempo atual
+              audio.addEventListener('timeupdate', function() {
+                if (!isNaN(audio.duration) && audio.duration > 0) {
+                  const progress = (audio.currentTime / audio.duration) * 100;
+                  progressSlider.value = progress;
+                  currentTimeElement.textContent = formatTime(audio.currentTime);
+                } else {
+                  progressSlider.value = 0;
+                  currentTimeElement.textContent = "0:00";
+                }
+              });
+              
+              // Atualiza a duração total
+              audio.addEventListener('loadedmetadata', function() {
+                durationElement.textContent = formatTime(audio.duration);
+                progressSlider.max = 100;
+                progressSlider.value = 0; // Garante que a barra começa no início
+                currentTimeElement.textContent = "0:00";
+              });
+              
+              // Controle da barra de progresso
+              progressSlider.addEventListener('input', function() {
+                const seekTime = (progressSlider.value / 100) * audio.duration;
+                audio.currentTime = seekTime;
+              });
+              
+              // Controle de volume
+              volumeSlider.addEventListener('input', function() {
+                audio.volume = volumeSlider.value;
+                if (audio.volume === 0) {
+                  volumeIcon.classList.add('hidden');
+                  muteIcon.classList.remove('hidden');
+                } else {
+                  volumeIcon.classList.remove('hidden');
+                  muteIcon.classList.add('hidden');
+                }
+              });
+              
+              // Botão de mudo
+              muteBtn.addEventListener('click', function() {
+                if (audio.volume > 0) {
+                  audio.dataset.prevVolume = audio.volume;
+                  audio.volume = 0;
+                  volumeSlider.value = 0;
+                  volumeIcon.classList.add('hidden');
+                  muteIcon.classList.remove('hidden');
+                } else {
+                  audio.volume = audio.dataset.prevVolume || 1;
+                  volumeSlider.value = audio.volume;
+                  volumeIcon.classList.remove('hidden');
+                  muteIcon.classList.add('hidden');
+                }
+              });
+              
+              // Atualiza a fonte quando mudar o idioma
+              function updateAudioSource() {
+                // Esta função será chamada pelo código de tradução
+                if (audio.paused) {
+                  // Reseta os controles se o áudio estiver parado
+                  progressSlider.value = 0;
+                  currentTimeElement.textContent = '0:00';
+                  playIcon.classList.remove('hidden');
+                  pauseIcon.classList.add('hidden');
+                } else {
+                  // Pausa e reseta se estava tocando
+                  audio.pause();
+                  progressSlider.value = 0;
+                  currentTimeElement.textContent = '0:00';
+                  playIcon.classList.remove('hidden');
+                  pauseIcon.classList.add('hidden');
+                }
+              }
+              
+              // Expõe a função para o escopo global
+              window.updateCustomAudioPlayer = updateAudioSource;
+              
+              // Inicialização: garante que a barra de progresso começa do zero
+              progressSlider.value = 0;
+              currentTimeElement.textContent = "0:00";
+              durationElement.textContent = "0:00";
+            });
+          </script>
+        </div>
       </div>
     </section>
 
@@ -232,6 +722,24 @@
 
 
   <script>
+    // Script que ajusta as cores do player de áudio após carregar a página
+    window.addEventListener('load', () => {
+      // Cria um estilo personalizado e o injeta no documento
+      const style = document.createElement('style');
+      style.textContent = `
+        audio::-webkit-media-controls-timeline,
+        audio::-webkit-media-controls-volume-slider {
+          filter: brightness(5) contrast(5) !important;
+          background-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        
+        audio::-webkit-media-controls-panel {
+          background-color: transparent !important;
+        }
+      `;
+      document.head.appendChild(style);
+    });
+    
     // Script existente + script do Modal
     document.addEventListener('DOMContentLoaded', () => {
       // --- Base URL para as imagens e whitepapers ---
@@ -246,6 +754,8 @@
           section2Title: 'Open-Source, Transparent, and Privacy-Respecting',
           section2Text: 'DomPII is offered as an online platform, but as it is fully open-source and easy to install, you can also run it locally without relying on centralized servers. This gives users complete control, allowing configuration of their own AI models using personal API credentials. Committed to transparency and data ethics.',
           viewOnGitHub: 'View on GitHub', footerCopy: '© 2025 DomPII. All rights reserved.', navPrivacy: 'Privacy', navTerms: 'Terms', navContact: 'Contact',
+          podcastTitle: 'Whitepaper summary', audioNotSupported: 'Your browser does not support the audio element.',
+          podcastSrc: `${imageBaseUrl}dompii-podcast_en.wav`,
           images: [ `${imageBaseUrl}p1-en.webp`, `${imageBaseUrl}p2-en.webp`, `${imageBaseUrl}p3-en.webp`, `${imageBaseUrl}p4-en.webp`, `${imageBaseUrl}p5-en.webp`, `${imageBaseUrl}p6-en.webp` ],
           captions: [
             "Track your progress in real-time with metrics that reflect not only what you know, but how you learn. Respecting your unique pace, style, and potential.",
@@ -263,6 +773,8 @@
           section2Title: 'Código Aberto, Transparente e Respeitando a Privacidade',
           section2Text: 'O DomPII é oferecido como uma plataforma online, mas por ser totalmente de código aberto e fácil de instalar, você também pode executá-lo localmente sem depender de servidores centralizados. Isso dá aos usuários controle total, permitindo a configuração de seus próprios modelos de IA usando credenciais de API pessoais. Comprometido com a transparência e a ética de dados.',
           viewOnGitHub: 'Ver no GitHub', footerCopy: '© 2025 DomPII. Todos os direitos reservados.', navPrivacy: 'Privacidade', navTerms: 'Termos', navContact: 'Contato',
+          podcastTitle: 'Resumo do whitepaper', audioNotSupported: 'Seu navegador não suporta o elemento de áudio.',
+          podcastSrc: `${imageBaseUrl}dompii-podcast_pt.wav`,
           images: [ `${imageBaseUrl}p1-pt.webp`, `${imageBaseUrl}p2-pt.webp`, `${imageBaseUrl}p3-pt.webp`, `${imageBaseUrl}p4-pt.webp`, `${imageBaseUrl}p5-pt.webp`, `${imageBaseUrl}p6-pt.webp` ],
           captions: [
             "Acompanhe seu progresso em tempo real com métricas que refletem não só o que você sabe, mas como você aprende. Respeitando seu ritmo, estilo e potencial únicos.",
@@ -280,6 +792,8 @@
           section2Title: 'Código Abierto, Transparente y Respetuoso con la Privacidad',
           section2Text: 'DomPII se ofrece como una plataforma en línea, pero al ser totalmente de código abierto y fácil de instalar, también puedes ejecutarlo localmente sin depender de servidores centralizados. Esto otorga a los usuarios un control total, permitiendo la configuración de sus propios modelos de IA utilizando credenciais de API personales. Comprometido con la transparencia y la ética de datos.',
           viewOnGitHub: 'Ver en GitHub', footerCopy: '© 2025 DomPII. Todos los derechos reservados.', navPrivacy: 'Privacidad', navTerms: 'Términos', navContact: 'Contacto',
+          podcastTitle: 'Resumen del whitepaper', audioNotSupported: 'Tu navegador no soporta el elemento de audio.',
+          podcastSrc: `${imageBaseUrl}dompii-podcast_es.wav`,
           images: [ `${imageBaseUrl}p1-es.webp`, `${imageBaseUrl}p2-es.webp`, `${imageBaseUrl}p3-es.webp`, `${imageBaseUrl}p4-es.webp`, `${imageBaseUrl}p5-es.webp`, `${imageBaseUrl}p6-es.webp` ],
           captions: [
             "Sigue tu progreso en tiempo real con métricas que reflejan no solo lo que sabes, sino cómo aprendes. Respetando tu ritmo, estilo y potencial únicos.",
@@ -297,6 +811,8 @@
           section2Title: 'オープンソース、透明性、プライバシー尊重',
           section2Text: 'DomPIIはオンラインプラットフォームとして提供されていますが、完全にオープンソースで簡単にインストールできるため、中央集権型サーバーに依存せずにローカルで実行することも可能です。これにより、ユーザーは完全な制御権を持ち、個人のAPI認証情報を使用して独自のAIモデルを構成できます。透明性とデータ倫理に取り組んでいます。',
           viewOnGitHub: 'GitHubで表示', footerCopy: '© 2025 DomPII. 無断複写・転載を禁じます。', navPrivacy: 'プライバシー', navTerms: '利用規約', navContact: 'お問い合わせ',
+          podcastTitle: 'ホワイトペーパーの要約', audioNotSupported: 'お使いのブラウザはオーディオ要素をサポートしていません。',
+          podcastSrc: `${imageBaseUrl}dompii-podcast_ja.wav`,
           images: [ `${imageBaseUrl}p1-ja.webp`, `${imageBaseUrl}p2-ja.webp`, `${imageBaseUrl}p3-ja.webp`, `${imageBaseUrl}p4-ja.webp`, `${imageBaseUrl}p5-ja.webp`, `${imageBaseUrl}p6-ja.webp` ],
           captions: [
             "リアルタイムの指標で進捗状況を追跡します。それは、あなたが何を知っているかだけでなく、どのように学習するかを反映します。あなたのユニークなペース、スタイル、可能性を尊重します。",
@@ -314,6 +830,8 @@
           section2Title: '开源、透明且尊重隐私',
           section2Text: 'DomPII 作为在线平台提供，但由于它完全开源且易于安装，您也可以在本地运行它而无需依赖集中式服务器。这使用户拥有完全控制权，允许使用个人 API 凭据配置自己的 AI 模型。致力于透明度和数据道德。',
           viewOnGitHub: '在 GitHub 上查看', footerCopy: '© 2025 DomPII. 版权所有。', navPrivacy: '隐私', navTerms: '条款', navContact: '联系方式',
+          podcastTitle: '白皮书摘要', audioNotSupported: '您的浏览器不支持音频元素。',
+          podcastSrc: `${imageBaseUrl}dompii-podcast_zh.wav`,
           images: [ `${imageBaseUrl}p1-zh.webp`, `${imageBaseUrl}p2-zh.webp`, `${imageBaseUrl}p3-zh.webp`, `${imageBaseUrl}p4-zh.webp`, `${imageBaseUrl}p5-zh.webp`, `${imageBaseUrl}p6-zh.webp` ],
           captions: [
             "通过实时指标跟踪您的进度，这些指标不仅反映您所了解的内容，还反映您的学习方式。尊重您独特的节奏、风格和潜力。",
@@ -470,7 +988,7 @@
              if (key === 'navWhitepaper' && el.id === 'whitepaper-button-link') {
                  el.querySelector('span').textContent = fallbackText;
                  el.href = translations['en']?.navWhitepaperLink || '#';
-             } else if (el.id !== 'whitepaper-button-link') {
+             } else if (el.id !== 'whitepaper-button-link') { // Evita traduzir o span do botão novamente
                  el.textContent = fallbackText;
              }
            }
@@ -497,6 +1015,20 @@
          const ariaNextBase = { en: 'Next slide', pt: 'Próximo slide', es: 'Siguiente diapositiva', ja: '次のスライド', zh: '下一张幻灯片' };
          if (prevBtn) prevBtn.setAttribute('aria-label', ariaPrevBase[currentLang] || ariaPrevBase['en']);
          if (nextBtn) nextBtn.setAttribute('aria-label', ariaNextBase[currentLang] || ariaNextBase['en']);
+         
+         // Atualiza player de áudio com base no idioma
+         const podcastPlayer = document.getElementById('podcast-player');
+         const podcastSource = document.getElementById('podcast-source');
+         if (podcastPlayer && podcastSource) {
+           const audioSrc = translations[currentLang]?.podcastSrc || translations['en'].podcastSrc;
+           podcastSource.src = audioSrc;
+           podcastPlayer.load(); // Recarrega o áudio após mudar a fonte
+           
+           // Atualiza também o player customizado se a função existir
+           if (typeof window.updateCustomAudioPlayer === 'function') {
+             window.updateCustomAudioPlayer();
+           }
+         }
 
          initializeDots();
          renderCarousel();
@@ -595,6 +1127,14 @@
           setCanvasSize();
           initParticles();
           animateParticles();
+      }
+      
+      // Inicializa o player de áudio
+      const podcastPlayer = document.getElementById('podcast-player');
+      const podcastSource = document.getElementById('podcast-source');
+      if (podcastPlayer && podcastSource) {
+          podcastSource.src = translations[currentLang]?.podcastSrc || translations['en'].podcastSrc;
+          podcastPlayer.load();
       }
 
       // --- Lógica do Modal de Info (Atualizada) ---
