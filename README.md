@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.svg" width="300" alt="DomPII logo" />
+  <img src="./assets/logo.svg" width="300" alt="DomPII logo" />
 </p>
 <p align="center">
   <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/frontend-Vue.js-42b883?logo=vue.js" /></a>
