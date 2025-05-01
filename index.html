@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DomPII – Empowering your mind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --dark-bg: #08090f;
+      --brand-red: #BF3F3F;
+      /* Convert brand red hex to RGB for rgba() usage */
+      --brand-red-rgb: 191, 63, 63;
+    }
+    body {
+      background-color: var(--dark-bg);
+      font-family:'Inter',system-ui,sans-serif;
+      min-height: 100vh;
+    }
+    h1,h2 { font-family:'Space Grotesk',sans-serif }
+
+    /* ==== Neural Network Background (Canvas) ==== */
+    .bg-canvas-container {
+      position: relative;
+      min-height: 100vh;
+    }
+    #particle-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* ==== End Background Effect ==== */
+
+    /* Glass Card */
+    .glass-card {
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
+      background-color: rgba(8, 9, 15, 0.3); /* Light background based on --dark-bg */
+    }
+
+    /* Title Gradient */
+    @keyframes gradientShift{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+    .title-gradient{background:linear-gradient(90deg,var(--brand-red),#ff906e,var(--brand-red));background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:gradientShift 8s ease-in-out infinite}
+
+    /* Fade Up Animation */
+    @keyframes fadeUp{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+    .fade-up{opacity:0;animation:fadeUp .8s cubic-bezier(.25,.8,.25,1) forwards}
+
+    /* Dots Pulse Animation */
+    @keyframes dotPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+    .dot.active{animation:dotPulse 1.2s ease-in-out infinite}
+
+    /* Image Zoom Animation */
+    @keyframes zoomFade{0%{opacity:0;transform:scale(1.1)}100%{opacity:1;transform:scale(1)}}
+    .zoom-in{animation:zoomFade .6s ease-out}
+
+    /* Carousel Touch Area */
+    #carousel-touch-area {
+      touch-action: pan-y; /* Permite scroll vertical, mas captura horizontal */
+      user-select: none;
+      -webkit-user-drag: none;
+      position: relative;
+      border-radius: 0.75rem;
+      /* Padding removido */
+
+      /* Glow Ativo com valores ajustados */
+      animation: subtleGlow 6s ease-in-out infinite alternate;
+
+      /* Background para esconder gap */
+      background-color: var(--dark-bg);
+    }
+
+    /* Glow com Blur e Spread Reduzidos */
+    @keyframes subtleGlow {
+        0%, 100% {
+          /* Offset X, Offset Y, Blur, Spread, Color */
+          box-shadow: 0 0 15px 2px rgba(191, 63, 63, 0.3); /* Blur e Spread bem menores, Opacidade aumentada */
+        }
+        50% {
+          box-shadow: 0 0 25px 5px rgba(191, 63, 63, 0.5); /* Blur e Spread bem menores, Opacidade aumentada */
+        }
+      }
+
+    /* DEBUG: Image shadow continua removida */
+    /* .image-final-shadow { ... } */
+
+    /* Modal Styles (Tailwind classes applied directly in HTML) */
+
+    /* --- Adicionado para transição suave da imagem --- */
+    #carousel-img {
+        transition: opacity 0.3s ease-in-out;
+        cursor: pointer; /* Indica que a imagem é clicável */
+    }
+
+    /* --- Estilos para o Modal de Imagem --- */
+    #image-modal-content-area {
+        max-height: 90vh; /* Limita altura máxima */
+        max-width: 90vw; /* Limita largura máxima */
+        overflow: hidden; /* Esconde overflow se imagem for muito grande */
+    }
+    #modal-carousel-img {
+        max-height: 75vh; /* Garante que a imagem não ultrapasse muito a tela */
+        width: auto; /* Mantém proporção */
+        max-width: 100%; /* Garante que não ultrapasse a largura do container */
+        object-fit: contain; /* Garante que a imagem caiba sem distorção */
+    }
+
+  </style>
+</head>
+<body class="text-white">
+  <div class="bg-canvas-container min-h-screen flex flex-col">
+    <canvas id="particle-canvas"></canvas>
+
+    <nav class="sticky top-0 z-50 lg:relative lg:z-10 flex items-center justify-between px-4 sm:px-8 py-3 lg:py-6 max-w-7xl mx-auto w-full
+            backdrop-blur-sm bg-[#08090f]/[0.7] border-b border-white/10 shadow-lg
+            lg:backdrop-blur-none lg:bg-transparent lg:border-b-0 lg:shadow-none">
+      <div class="flex-shrink-0 flex items-center gap-3">
+          <img src="logo.svg" class="h-12 md:h-16 lg:h-20" alt="logo" onerror="this.style.display='none'" />
+      </div>
+
+      <div class="flex-grow"></div>
+
+      <div class="flex-shrink-0 flex items-center">
+          <button id="coming-soon-btn" class="inline-flex px-3 py-1.5 md:px-5 md:py-2.5 bg-[var(--brand-red)] rounded-lg shadow-lg hover:brightness-110 transition-all duration-200 text-xs sm:text-sm md:text-base whitespace-nowrap" data-i18n="comingSoon">Coming Soon</button>
+          <button id="lang-toggle" class="inline-flex ml-1 sm:ml-2 px-1.5 py-1 md:px-3 md:py-2 bg-transparent text-white/70 hover:text-white rounded transition-colors duration-200 text-xs sm:text-sm" title="Change language">EN</button>
+      </div>
+    </nav>
+    <section class="relative z-10 max-w-7xl mx-auto px-6 py-14 lg:py-10 flex flex-col lg:grid lg:grid-cols-2 gap-14 flex-1 lg:items-start">
+
+      <div class="glass-card p-6 lg:px-8 lg:py-12 rounded-2xl space-y-6 order-2 lg:order-1 self-start">
+        <div>
+          <h1 class="title-gradient text-3xl lg:text-4xl font-extrabold leading-tight fade-up" data-i18n="heroTitle" style="animation-delay:.05s">Empowering your mind.</h1>
+          <h2 class="text-base lg:text-lg text-gray-200 italic mt-2 fade-up" data-i18n="heroSubtitle" style="animation-delay:.1s">State‑of‑the‑art in learning science</h2>
+          <div class="mt-6 space-y-6 text-gray-300 text-xs lg:text-sm fade-up max-w-prose" style="animation-delay:.2s">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--brand-red)] flex-shrink-0"><path d="M12 2a10 10 0 0 0-4.3 1.9C6.6 4.6 6 5.8 6 7v4.5c0 1.7 1.3 3 3 3h1.5c.3 0 .5-.2.5-.5v-5c0-.3-.2-.5-.5-.5H9c-.6 0-1-.4-1-1V7c0-.6.4-1 1-1h6c.6 0 1 .4 1 1v1.5c0 .6-.4 1-1 1h-1.5c-.3 0-.5.2-.5.5v5c0 .3.2.5.5.5H15c1.7 0 3-1.3 3-3V7c0-1.2-.6-2.4-1.7-3.1A10 10 0 0 0 12 2Z"/><path d="M12 14.5v1.5c0 .6.4 1 1 1h1.5c.3 0 .5.2.5.5v3c0 .3-.2.5-.5.5H13c-1.7 0-3-1.3-3-3v-1.5"/><path d="M12 14.5v1.5c0-.6-.4-1-1-1h-1.5c-.3 0-.5.2-.5.5v3c0 .3.2.5.5.5H11c1.7 0 3-1.3 3-3v-1.5"/></svg>
+                <h3 class="title-gradient font-semibold" data-i18n="section1Title">Advancing Knowledge Through Intelligent Learning</h3>
+              </div>
+              <p data-i18n="section1Text" class="pl-[calc(18px+0.625rem)]">Designed specifically for self-directed learners, this platform offers a rigorous and personalized educational experience across multiple domains of knowledge. It integrates state-of-the-art learning science with experimental methodologies, leveraging the latest technologies in artificial intelligence to enhance autonomy, engagement, and long-term retention through active learning, hands-on practice, and playful, enjoyable experiences.</p>
+            </div>
+            <div class="space-y-2 pt-4">
+              <div class="flex items-center gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--brand-red)] flex-shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+                <h3 class="title-gradient font-semibold" data-i18n="section2Title">Open-Source, Transparent, and Privacy-Respecting</h3>
+              </div>
+              <p data-i18n="section2Text" class="pl-[calc(18px+0.625rem)]">DomPII is offered as an online platform, but as it is fully open-source and easy to install, you can also run it locally without relying on centralized servers. This gives users complete control, allowing configuration of their own AI models using personal API credentials. Committed to transparency and data ethics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-col flex flex-col items-center w-full max-w-xl order-1 lg:order-2">
+        <div id="dots" class="flex gap-6 mb-4 justify-center"></div>
+        <div id="carousel-touch-area" class="relative w-full group">
+          <button id="prev-btn" aria-label="Slide anterior" class="arrow-btn absolute left-2 top-1/2 z-10 -translate-y-1/2 p-2 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-70 hover:!opacity-100 hover:bg-black/40 transition-all duration-300 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+          </button>
+          <img id="carousel-img"
+             draggable="false"
+             class="rounded-xl border border-white/10 w-full object-cover block"
+             alt="DomPII screenshot"
+             onerror="this.style.backgroundColor='var(--dark-bg)'; this.alt='Erro ao carregar imagem';"
+             />
+          <button id="next-btn" aria-label="Próximo slide" class="arrow-btn absolute right-2 top-1/2 z-10 -translate-y-1/2 p-2 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-70 hover:!opacity-100 hover:bg-black/40 transition-all duration-300 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+        <p id="carousel-text" class="text-center text-gray-300 text-sm md:text-base w-full mt-2 min-h-[4rem]"></p>
+        <div class="flex flex-wrap justify-center gap-4 mt-6">
+            <a href="https://github.com/Arateki/Dompii" target="_blank"
+              class="inline-flex gap-2 items-center px-6 py-3 border border-white/20 rounded-lg text-white/80 hover:border-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white transition-all duration-300 fade-up"
+              style="animation-delay:.3s">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+               <span data-i18n="viewOnGitHub">View on GitHub</span>
+            </a>
+            <a id="whitepaper-button-link" href="#" target="_blank"
+              class="inline-flex gap-2 items-center px-6 py-3 border border-white/20 rounded-lg text-white/80 hover:border-[var(--brand-red)] hover:bg-[var(--brand-red)] hover:text-white transition-all duration-300 fade-up"
+              style="animation-delay:.35s" data-i18n="navWhitepaper">
+               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-text" viewBox="0 0 16 16">
+                 <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                 <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+               </svg>
+               <span>Whitepaper</span> </a>
+        </div>
+      </div>
+    </section>
+
+    <footer class="relative z-10 border-t border-white/10 text-gray-400 text-sm">
+      <div class="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <p data-i18n="footerCopy">© 2025 DomPII. All rights reserved.</p>
+        <nav class="flex gap-6">
+            <a href="javascript:void(0);" class="hover:text-[var(--brand-red)]" data-modal-type="contact" data-i18n="navContact">Contact</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+
+  <div id="info-modal" class="fixed inset-0 z-[60] flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="modal-overlay" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+    <div class="relative backdrop-blur-sm bg-[#08090f]/[0.7] border border-white/10 rounded-lg p-6 pt-12 mx-4 max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-xl">
+      <button id="modal-close-btn" class="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors" aria-label="Fechar modal">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <h2 id="modal-title" class="text-xl font-semibold mb-4 title-gradient"></h2>
+      <div id="modal-content" class="text-gray-300 space-y-4 text-sm">
+      </div>
+    </div>
+  </div>
+
+  <div id="image-modal" class="fixed inset-0 z-[70] flex items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="image-modal-caption">
+    <div id="image-modal-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div> <div id="image-modal-content-area" class="relative p-4 rounded-lg flex flex-col items-center gap-4">
+        <button id="image-modal-close-btn" class="absolute -top-2 -right-2 sm:top-0 sm:right-0 m-2 text-white bg-black/50 rounded-full p-1.5 hover:bg-black/75 transition-colors z-10" aria-label="Fechar imagem">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+        <img id="modal-carousel-img" src="" alt="Imagem ampliada do carrossel" class="rounded-lg shadow-xl">
+        <p id="modal-carousel-caption" class="text-center text-white text-sm sm:text-base bg-black/30 backdrop-blur-sm p-2 rounded-md max-w-full"></p>
+    </div>
+  </div>
+
+
+  <script>
+    // Script existente + script do Modal
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- Base URL para as imagens e whitepapers ---
+      const imageBaseUrl = 'https://dompii.s3.sa-east-1.amazonaws.com/';
+      const whitepaperBaseUrl = 'https://dompii.s3.sa-east-1.amazonaws.com/dompii-whitepaper_'; // Base URL do Whitepaper
+
+      const translations = {
+        en: {
+          navHome: 'Home', navWhitepaper: 'Whitepaper', navWhitepaperLink: `${whitepaperBaseUrl}en.pdf`,
+          navFeatures: 'Features', navDocs: 'Docs', comingSoon: 'Coming Soon', heroTitle: 'Empowering your mind.', heroSubtitle: 'State‑of‑the‑art in learning science',
+          section1Title: 'Advancing Knowledge Through Intelligent Learning', section1Text: 'Designed specifically for self-directed learners, this platform offers a rigorous and personalized educational experience across multiple domains of knowledge. It integrates state-of-the-art learning science with experimental methodologies, leveraging the latest technologies in artificial intelligence to enhance autonomy, engagement, and long-term retention through active learning, hands-on practice, and playful, enjoyable experiences.',
+          section2Title: 'Open-Source, Transparent, and Privacy-Respecting',
+          section2Text: 'DomPII is offered as an online platform, but as it is fully open-source and easy to install, you can also run it locally without relying on centralized servers. This gives users complete control, allowing configuration of their own AI models using personal API credentials. Committed to transparency and data ethics.',
+          viewOnGitHub: 'View on GitHub', footerCopy: '© 2025 DomPII. All rights reserved.', navPrivacy: 'Privacy', navTerms: 'Terms', navContact: 'Contact',
+          images: [ `${imageBaseUrl}p1-en.webp`, `${imageBaseUrl}p2-en.webp`, `${imageBaseUrl}p3-en.webp`, `${imageBaseUrl}p4-en.webp`, `${imageBaseUrl}p5-en.webp`, `${imageBaseUrl}p6-en.webp` ],
+          captions: [
+            "Track your progress in real-time with metrics that reflect not only what you know, but how you learn. Respecting your unique pace, style, and potential.",
+            "When your curiosity is the engine, knowledge transforms into a living, interactive, affective, and limitless territory. Learning now adapts to you, not the other way around.",
+            "The limit is as far as your curiosity wants to go. From mind maps to voice simulations. Combining techniques, senses, and imagination, you explore knowledge in multiple dimensions.",
+            "Design your own learning style. Define how you prefer to evolve and allow the system to adjust with you.",
+            "Gamification triggers focus, reward, and retention mechanisms. When you play to learn, content transforms into a tangible achievement.",
+            "Knowing is not accumulating, it's exploring. Measure, test, model, create. By applying what you've learned to real problems, you not only understand it, but you also reveal."
+          ]
+        },
+        pt: {
+          navHome: 'Início', navWhitepaper: 'Whitepaper', navWhitepaperLink: `${whitepaperBaseUrl}pt.pdf`,
+          navFeatures: 'Recursos', navDocs: 'Documentação', comingSoon: 'Em breve', heroTitle: 'Capacitando sua mente.', heroSubtitle: 'Estado da arte em ciência da aprendizagem',
+          section1Title: 'Avançando o conhecimento através do aprendizado inteligente', section1Text: 'Projetado especificamente para aprendizes autodirigidos, esta plataforma oferece uma experiência educacional rigorosa e personalizada em múltiplos domínios do conhecimento. Ela integra a ciência da aprendizagem de ponta com metodologias experimentais, aproveitando as mais recentes tecnologias em inteligência artificial para aumentar a autonomia, o engajamento e a retenção a longo prazo por meio de aprendizado ativo, prática e experiências lúdicas e agradáveis.',
+          section2Title: 'Código Aberto, Transparente e Respeitando a Privacidade',
+          section2Text: 'O DomPII é oferecido como uma plataforma online, mas por ser totalmente de código aberto e fácil de instalar, você também pode executá-lo localmente sem depender de servidores centralizados. Isso dá aos usuários controle total, permitindo a configuração de seus próprios modelos de IA usando credenciais de API pessoais. Comprometido com a transparência e a ética de dados.',
+          viewOnGitHub: 'Ver no GitHub', footerCopy: '© 2025 DomPII. Todos os direitos reservados.', navPrivacy: 'Privacidade', navTerms: 'Termos', navContact: 'Contato',
+          images: [ `${imageBaseUrl}p1-pt.webp`, `${imageBaseUrl}p2-pt.webp`, `${imageBaseUrl}p3-pt.webp`, `${imageBaseUrl}p4-pt.webp`, `${imageBaseUrl}p5-pt.webp`, `${imageBaseUrl}p6-pt.webp` ],
+          captions: [
+            "Acompanhe seu progresso em tempo real com métricas que refletem não só o que você sabe, mas como você aprende. Respeitando seu ritmo, estilo e potencial únicos.",
+            "Quando sua curiosidade é o motor, o saber se transforma em território vivo, interativo, afetivo e ilimitado. O aprendizado agora se adapta a você não o contrário.",
+            "O limite é até onde sua curiosidade quiser ir. De mapas mentais a simulações por voz. Combinando técnicas, sentidos e imaginação você explora o conhecimento em múltiplas dimensões.",
+            "Projete seu próprio estilo de aprender. Defina como prefere evoluir e permita que o sistema se ajuste com você.",
+            "A gamificação aciona mecanismos de foco, recompensa e retenção. Quando você joga para aprender, o conteúdo se transforma em conquista tangível.",
+            "Saber não é acumular, é explorar. Meça, teste, modele, crie. Ao aplicar o que aprendeu em problemas reais, você não só entende aquilo, como também revela."
+          ]
+        },
+        es: {
+          navHome: 'Inicio', navWhitepaper: 'Whitepaper', navWhitepaperLink: `${whitepaperBaseUrl}es.pdf`,
+          navFeatures: 'Características', navDocs: 'Documentación', comingSoon: 'Próximamente', heroTitle: 'Potenciando tu mente.', heroSubtitle: 'Vanguardia en la ciencia del aprendizaje',
+          section1Title: 'Avanzando el conocimiento a través del aprendizaje inteligente', section1Text: 'Diseñada específicamente para estudiantes autodirigidos, esta plataforma ofrece una experiencia educativa rigurosa y personalizada en múltiples dominios del conocimiento. Integra la ciencia del aprendizaje de vanguardia con metodologías experimentales, aprovechando las últimas tecnologías en inteligencia artificial para mejorar la autonomía, el compromiso y la retención a largo prazo a través del aprendizaje activo, la práctica y experiencias lúdicas y agradables.',
+          section2Title: 'Código Abierto, Transparente y Respetuoso con la Privacidad',
+          section2Text: 'DomPII se ofrece como una plataforma en línea, pero al ser totalmente de código abierto y fácil de instalar, también puedes ejecutarlo localmente sin depender de servidores centralizados. Esto otorga a los usuarios un control total, permitiendo la configuración de sus propios modelos de IA utilizando credenciais de API personales. Comprometido con la transparencia y la ética de datos.',
+          viewOnGitHub: 'Ver en GitHub', footerCopy: '© 2025 DomPII. Todos los derechos reservados.', navPrivacy: 'Privacidad', navTerms: 'Términos', navContact: 'Contacto',
+          images: [ `${imageBaseUrl}p1-es.webp`, `${imageBaseUrl}p2-es.webp`, `${imageBaseUrl}p3-es.webp`, `${imageBaseUrl}p4-es.webp`, `${imageBaseUrl}p5-es.webp`, `${imageBaseUrl}p6-es.webp` ],
+          captions: [
+            "Sigue tu progreso en tiempo real con métricas que reflejan no solo lo que sabes, sino cómo aprendes. Respetando tu ritmo, estilo y potencial únicos.",
+            "Cuando tu curiosidad es el motor, el saber se transforma en un territorio vivo, interactivo, afectivo e ilimitado. El aprendizaje ahora se adapta a ti, no al revés.",
+            "El límite está hasta donde tu curiosidad quiera llegar. Desde mapas mentales hasta simulaciones por voz. Combinando técnicas, sentidos e imaginación, exploras el conocimiento en múltiples dimensiones.",
+            "Diseña tu propio estilo de aprendizaje. Define cómo prefieres evolucionar y permite que el sistema se ajuste contigo.",
+            "La gamificación activa mecanismos de enfoque, recompensa y retención. Cuando juegas para aprender, el contenido se transforma en un logro tangible.",
+            "Saber no es acumular, es explorar. Mide, prueba, modela, crea. Al aplicar lo que has aprendido a problemas reales, no solo lo entiendes, sino que también lo revelas."
+          ]
+        },
+        ja: {
+          navHome: 'ホーム', navWhitepaper: 'ホワイトペーパー', navWhitepaperLink: `${whitepaperBaseUrl}ja.pdf`,
+          navFeatures: '特徴', navDocs: 'ドキュメント', comingSoon: '近日公開', heroTitle: 'あなたの心を力づける。', heroSubtitle: '学習科学の最先端',
+          section1Title: 'インテリジェントな学習による知識の進歩', section1Text: '自己主導型学習者向けに特別に設計されたこのプラットフォームは、複数の知識領域にわたる厳密でパーソナライズされた教育体験を提供します。最先端の学習科学と実験的方法論を統合し、人工知能の最新技術を活用して、能動的な学習、実践的な練習、そして遊び心のある楽しい体験を通じて、自律性、エンゲージメント、長期的な記憶保持を強化します。',
+          section2Title: 'オープンソース、透明性、プライバシー尊重',
+          section2Text: 'DomPIIはオンラインプラットフォームとして提供されていますが、完全にオープンソースで簡単にインストールできるため、中央集権型サーバーに依存せずにローカルで実行することも可能です。これにより、ユーザーは完全な制御権を持ち、個人のAPI認証情報を使用して独自のAIモデルを構成できます。透明性とデータ倫理に取り組んでいます。',
+          viewOnGitHub: 'GitHubで表示', footerCopy: '© 2025 DomPII. 無断複写・転載を禁じます。', navPrivacy: 'プライバシー', navTerms: '利用規約', navContact: 'お問い合わせ',
+          images: [ `${imageBaseUrl}p1-ja.webp`, `${imageBaseUrl}p2-ja.webp`, `${imageBaseUrl}p3-ja.webp`, `${imageBaseUrl}p4-ja.webp`, `${imageBaseUrl}p5-ja.webp`, `${imageBaseUrl}p6-ja.webp` ],
+          captions: [
+            "リアルタイムの指標で進捗状況を追跡します。それは、あなたが何を知っているかだけでなく、どのように学習するかを反映します。あなたのユニークなペース、スタイル、可能性を尊重します。",
+            "好奇心が原動力となるとき、知識は生きた、対話的で、感情的で、無限の領域へと変化します。今や学習があなたに適応するのであり、その逆ではありません。",
+            "限界は、あなたの好奇心が望む限りです。マインドマップから音声シミュレーションまで。テクニック、感覚、想像力を組み合わせることで、あなたは知識を多次元的に探求します。",
+            "自分自身の学習スタイルをデザインしましょう。どのように進化したいかを定義し、システムがあなたに合わせて調整できるようにします。",
+            "ゲーミフィケーションは、集中力、報酬、記憶保持のメカニズムを引き起こします。学習するためにプレイすると、コンテンツは具体的な成果に変わります。",
+            "知ることは蓄積することではなく、探求することです。測定し、テストし、モデル化し、創造しましょう。学んだことを実際の問題に応用することで、それを理解するだけでなく、明らかにすることもできます。"
+          ]
+        },
+        zh: {
+          navHome: '首页', navWhitepaper: '白皮书', navWhitepaperLink: `${whitepaperBaseUrl}zh.pdf`,
+          navFeatures: '功能', navDocs: '文档', comingSoon: '即将推出', heroTitle: '赋能你的思维。', heroSubtitle: '学习科学的前沿技术',
+          section1Title: '通过智能学习促进知识进步', section1Text: '该平台专为自主学习者设计，提供跨多个知识领域的严谨和个性化的教育体验。它将最先进的学习科学与实验方法相结合，利用人工智能的最新技术，通过主动学习、动手实践以及有趣愉快的体验来增强自主性、参与度和长期记忆。',
+          section2Title: '开源、透明且尊重隐私',
+          section2Text: 'DomPII 作为在线平台提供，但由于它完全开源且易于安装，您也可以在本地运行它而无需依赖集中式服务器。这使用户拥有完全控制权，允许使用个人 API 凭据配置自己的 AI 模型。致力于透明度和数据道德。',
+          viewOnGitHub: '在 GitHub 上查看', footerCopy: '© 2025 DomPII. 版权所有。', navPrivacy: '隐私', navTerms: '条款', navContact: '联系方式',
+          images: [ `${imageBaseUrl}p1-zh.webp`, `${imageBaseUrl}p2-zh.webp`, `${imageBaseUrl}p3-zh.webp`, `${imageBaseUrl}p4-zh.webp`, `${imageBaseUrl}p5-zh.webp`, `${imageBaseUrl}p6-zh.webp` ],
+          captions: [
+            "通过实时指标跟踪您的进度，这些指标不仅反映您所了解的内容，还反映您的学习方式。尊重您独特的节奏、风格和潜力。",
+            "当你的好奇心是引擎时，知识就转变为一个活生生的、互动的、情感丰富的、无限的领域。现在是学习适应你，而不是反过来。",
+            "极限取决于你的好奇心想走多远。从思维导图到语音模拟。结合技巧、感官和想象力，您可以在多个维度探索知识。",
+            "设计您自己的学习风格。定义您偏好的发展方式，并允许系统与您一起调整。",
+            "游戏化触发专注、奖励和记忆机制。当您为了学习而玩耍时，内容会转化为切实的成就。",
+            "知晓并非积累，而是探索。衡量、测试、建模、创造。通过将所学应用于实际问题，您不仅能理解它，还能揭示它。"
+          ]
+        }
+      };
+
+      // --- Restante do Código ---
+      let browserLang = navigator.language.slice(0, 2);
+      let initialLang = localStorage.getItem('lang') || (['en', 'pt', 'es', 'ja', 'zh'].includes(browserLang) ? browserLang : 'en');
+      let currentLang = initialLang;
+
+      const langToggle = document.getElementById('lang-toggle');
+      const carouselTouchArea = document.getElementById('carousel-touch-area');
+      const imgEl = document.getElementById('carousel-img');
+      const captionEl = document.getElementById('carousel-text');
+      const dotsBox = document.getElementById('dots');
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const whitepaperButtonLink = document.getElementById('whitepaper-button-link');
+
+      // --- Seletores para o novo Modal de Imagem ---
+      const imageModal = document.getElementById('image-modal');
+      const imageModalOverlay = document.getElementById('image-modal-overlay');
+      const imageModalCloseBtn = document.getElementById('image-modal-close-btn');
+      const modalCarouselImg = document.getElementById('modal-carousel-img');
+      const modalCarouselCaption = document.getElementById('modal-carousel-caption');
+      const infoModal = document.getElementById('info-modal'); // Selector for info modal needed for checks
+
+      let idx = 0;
+      let autoSlideInterval = null;
+      let isTouching = false;
+      let touchStartX = 0;
+      let touchEndX = 0;
+      const swipeThreshold = 50; // Limiar para detectar swipe
+      // Removido tapThreshold e blockClickAfterSwipe
+
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas ? canvas.getContext('2d') : null;
+      let particlesArray = [];
+      const mouse = { x: null, y: null, radius: 80 };
+      let animationFrameId = null;
+
+      const fallbackImgURL = 'https://placehold.co/600x400/1f3b35/ffffff?text=Image+Loading...';
+      const errorImgURL = 'https://placehold.co/600x400/1f3b35/ff0000?text=Error+Loading+Image';
+
+      const imagesArr = () => translations[currentLang]?.images || translations['en'].images;
+      const captionsArr = () => translations[currentLang]?.captions || translations['en'].captions;
+      const whitepaperLinkHref = () => translations[currentLang]?.navWhitepaperLink || translations['en'].navWhitepaperLink || '#';
+
+      // Verifica se todos os elementos essenciais foram encontrados
+      if (!langToggle || !carouselTouchArea || !imgEl || !captionEl || !dotsBox || !prevBtn || !nextBtn || !whitepaperButtonLink || !imageModal || !imageModalOverlay || !imageModalCloseBtn || !modalCarouselImg || !modalCarouselCaption || !infoModal) { // Added infoModal check
+        console.error("Um ou mais elementos essenciais da UI não foram encontrados.");
+      }
+      if (!canvas || !ctx) {
+          console.error("Elemento canvas ou contexto não encontrado. Animação de fundo desativada.");
+      }
+
+      langToggle.textContent = currentLang.toUpperCase();
+
+      function preloadImages(lang) {
+        const imagesToPreload = translations[lang]?.images || translations['en'].images;
+        imagesToPreload.forEach(src => {
+            const img = new Image();
+            img.src = src;
+        });
+      }
+
+      function initializeDots() {
+          if (dotsBox) {
+              dotsBox.innerHTML = '';
+              const currentImages = imagesArr();
+              currentImages.forEach((_, i) => {
+                  const dot = document.createElement('button');
+                  dot.className = 'dot w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gray-400 opacity-60 transition cursor-pointer';
+                  dot.dataset.index = i;
+                  const ariaLabelBase = { en: 'Go to slide', pt: 'Ir para slide', es: 'Ir al slide', ja: 'スライドへ移動', zh: '转到幻灯片' };
+                  dot.setAttribute('aria-label', `${ariaLabelBase[currentLang] || ariaLabelBase['en']} ${i + 1}`);
+                  dotsBox.appendChild(dot);
+              });
+
+              if (currentImages.length >= 6) {
+                  dotsBox.classList.remove('gap-6');
+                  dotsBox.classList.add('gap-3', 'md:gap-4');
+              } else {
+                  dotsBox.classList.remove('gap-3', 'md:gap-4');
+                  dotsBox.classList.add('gap-6');
+              }
+
+              dotsBox.querySelectorAll('.dot').forEach(dot => {
+                  dot.addEventListener('click', () => {
+                      idx = parseInt(dot.dataset.index);
+                      renderCarousel();
+                      resetTimer(); // Reseta o timer ao clicar no ponto
+                  });
+              });
+          }
+      }
+
+      function renderCarousel() {
+        if (!imgEl || !captionEl || !dotsBox) { return; }
+        const currentImages = imagesArr();
+        const currentCaptions = captionsArr();
+        const dots = dotsBox.querySelectorAll('.dot');
+
+        if (currentImages.length === 0 || dots.length === 0) return;
+
+        idx = idx % currentImages.length;
+
+        imgEl.style.opacity = '0';
+        imgEl.classList.remove('zoom-in');
+
+        imgEl.onload = null;
+        imgEl.onerror = null; // onerror do HTML ainda funciona
+
+        imgEl.onload = () => {
+            imgEl.style.opacity = '1';
+            imgEl.classList.add('zoom-in');
+        };
+
+        imgEl.src = currentImages[idx];
+
+        captionEl.textContent = currentCaptions[idx] || currentCaptions[0];
+        const ariaLabelBase = { en: 'Go to slide', pt: 'Ir para slide', es: 'Ir al slide', ja: 'スライドへ移動', zh: '转到幻灯片' };
+        dots.forEach((d, i) => {
+          const isActive = i === idx;
+          d.classList.toggle('bg-white', isActive); d.classList.toggle('opacity-100', isActive);
+          d.classList.toggle('active', isActive); d.classList.toggle('bg-gray-400', !isActive);
+          d.classList.toggle('opacity-60', !isActive);
+          d.setAttribute('aria-label', `${ariaLabelBase[currentLang] || ariaLabelBase['en']} ${i + 1}`);
+        });
+      }
+
+      function translatePage() {
+          // Traduz elementos gerais
+          document.querySelectorAll('[data-i18n]').forEach(el => {
+           const key = el.dataset.i18n;
+           if (key !== 'captions' && translations[currentLang]?.[key] && !el.closest('#info-modal') && !el.closest('#image-modal')) { // Evita traduzir dentro dos modais aqui
+             // Atualiza o texto do botão whitepaper e seu link
+             if (key === 'navWhitepaper' && el.id === 'whitepaper-button-link') {
+                 el.querySelector('span').textContent = translations[currentLang][key]; // Atualiza o texto dentro do span
+                 el.href = whitepaperLinkHref(); // Atualiza o link (href)
+             } else if (el.id !== 'whitepaper-button-link') { // Evita traduzir o span do botão novamente
+                 el.textContent = translations[currentLang][key];
+             }
+           } else if (key !== 'captions' && !el.closest('#info-modal') && !el.closest('#image-modal')) {
+             const fallbackText = translations['en']?.[key] || `[${key}]`;
+             // Fallback para o botão whitepaper
+             if (key === 'navWhitepaper' && el.id === 'whitepaper-button-link') {
+                 el.querySelector('span').textContent = fallbackText;
+                 el.href = translations['en']?.navWhitepaperLink || '#';
+             } else if (el.id !== 'whitepaper-button-link') {
+                 el.textContent = fallbackText;
+             }
+           }
+         });
+
+         if(langToggle) langToggle.textContent = currentLang.toUpperCase();
+
+         // Traduz links do modal de info (se fechado)
+         const infoModalTriggerLinks = document.querySelectorAll('footer nav a[data-modal-type]');
+         // const infoModal = document.getElementById('info-modal'); // Já definido globalmente
+         if (!infoModal || infoModal.classList.contains('hidden')) {
+             infoModalTriggerLinks.forEach(link => {
+                 const key = link.getAttribute('data-i18n');
+                 if (key && translations[currentLang]?.[key]) {
+                     link.textContent = translations[currentLang][key];
+                 } else if (key && translations['en']?.[key]) {
+                     link.textContent = translations['en'][key];
+                 }
+             });
+         }
+
+         // Atualiza aria-labels dos botões do carrossel
+         const ariaPrevBase = { en: 'Previous slide', pt: 'Slide anterior', es: 'Diapositiva anterior', ja: '前のスライド', zh: '上一张幻灯片' };
+         const ariaNextBase = { en: 'Next slide', pt: 'Próximo slide', es: 'Siguiente diapositiva', ja: '次のスライド', zh: '下一张幻灯片' };
+         if (prevBtn) prevBtn.setAttribute('aria-label', ariaPrevBase[currentLang] || ariaPrevBase['en']);
+         if (nextBtn) nextBtn.setAttribute('aria-label', ariaNextBase[currentLang] || ariaNextBase['en']);
+
+         initializeDots();
+         renderCarousel();
+      }
+
+      // --- Funções do Carrossel ---
+      function nextSlide() { idx = (idx + 1) % imagesArr().length; renderCarousel(); }
+      function prevSlide() { idx = (idx - 1 + imagesArr().length) % imagesArr().length; renderCarousel(); }
+      // --- Função resetTimer corrigida ---
+      function resetTimer() {
+          clearInterval(autoSlideInterval); // Limpa qualquer timer existente
+          // Reinicia o timer APENAS se nenhum modal estiver aberto
+          if (infoModal.classList.contains('hidden') && imageModal.classList.contains('hidden')) {
+              // console.log("Restarting carousel timer"); // Debug
+              autoSlideInterval = setInterval(nextSlide, 7000);
+          } else {
+              // console.log("Carousel timer paused (modal open)"); // Debug
+          }
+      }
+      function handleTouchStart(event) { if (event.touches.length === 1) { touchStartX = event.touches[0].clientX; isTouching = true; } }
+      function handleTouchMove(event) { if (!isTouching || event.touches.length !== 1) return; touchEndX = event.touches[0].clientX; }
+      // --- Função handleTouchEnd corrigida v4 ---
+      function handleTouchEnd(event) {
+          if (!isTouching) return;
+          const touchDiffX = touchEndX - touchStartX;
+          isTouching = false; // Reset isTouching aqui
+
+          // Só executa a lógica de swipe se o movimento for significativo
+          if (Math.abs(touchDiffX) > swipeThreshold) {
+              if (touchDiffX < 0) {
+                  nextSlide();
+              } else {
+                  prevSlide();
+              }
+              resetTimer(); // Reinicia o timer após swipe
+          }
+          // Se for um toque (movimento pequeno), não faz nada aqui.
+          // O evento 'click' na imagem será responsável por abrir o modal.
+
+          // Resetar coordenadas
+          touchStartX = 0;
+          touchEndX = 0;
+      }
+
+
+      // --- Funções de Fundo de Partículas ---
+      function setCanvasSize() { if(canvas && ctx) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } }
+      class Particle {
+        constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 2 + 1; this.baseX = this.x; this.baseY = this.y; this.density = (Math.random() * 20) + 5; this.speedX = (Math.random() - 0.5) * 0.8; this.speedY = (Math.random() - 0.5) * 0.8; this.color = Math.random() > 0.1 ? `rgba(255, 255, 255, ${Math.random() * 0.4 + 0.2})` : `rgba(191, 63, 63, ${Math.random() * 0.5 + 0.3})`; }
+        update() { let dx_mouse = mouse.x - this.x; let dy_mouse = mouse.y - this.y; let distance_mouse = mouse.x === null ? Infinity : Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse); let forceDirectionX = dx_mouse / distance_mouse; let forceDirectionY = dy_mouse / distance_mouse; let maxDistance = mouse.radius; if (distance_mouse < maxDistance) { let force = (maxDistance - distance_mouse) / maxDistance; let moveX = forceDirectionX * force * this.density * 0.4; let moveY = forceDirectionY * force * this.density * 0.4; this.x -= moveX; this.y -= moveY; } this.x += this.speedX; this.y += this.speedY; if(canvas){ if (this.x < -this.size) this.x = canvas.width + this.size; if (this.x > canvas.width + this.size) this.x = -this.size; if (this.y < -this.size) this.y = canvas.height + this.size; if (this.y > canvas.height + this.size) this.y = -this.size; } }
+        draw() { if(ctx) { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.closePath(); ctx.fill(); } }
+      }
+      function initParticles() { if(!canvas || !ctx) return; particlesArray = []; const densityFactor = 9500; const minParticles = 80; const maxParticles = 250; const edgeRatio = 0.5; const edgeMargin = 80; let totalNumberOfParticles = Math.floor((canvas.width * canvas.height) / densityFactor); totalNumberOfParticles = Math.max(minParticles, Math.min(maxParticles, totalNumberOfParticles)); let numberOfEdgeParticles = Math.floor(totalNumberOfParticles * edgeRatio); let numberOfCenterParticles = totalNumberOfParticles - numberOfEdgeParticles; for (let i = 0; i < numberOfCenterParticles; i++) { particlesArray.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height)); } for (let i = 0; i < numberOfEdgeParticles; i++) { let x, y; let edge = Math.floor(Math.random() * 4); switch (edge) { case 0: x = Math.random() * canvas.width; y = Math.random() * edgeMargin; break; case 1: x = canvas.width - (Math.random() * edgeMargin); y = Math.random() * canvas.height; break; case 2: x = Math.random() * canvas.width; y = canvas.height - (Math.random() * edgeMargin); break; case 3: default: x = Math.random() * edgeMargin; y = Math.random() * canvas.height; break; } particlesArray.push(new Particle(Math.max(0, Math.min(canvas.width, x)), Math.max(0, Math.min(canvas.height, y)))); } }
+      function connectParticles() { if(!canvas || !ctx) return; const maxConnectionDistance = 130; const lineColorBase = '191, 63, 63'; for (let a = 0; a < particlesArray.length; a++) { for (let b = a + 1; b < particlesArray.length; b++) { let dx = particlesArray[a].x - particlesArray[b].x; let dy = particlesArray[a].y - particlesArray[b].y; let distance = Math.sqrt(dx * dx + dy * dy); if (distance < maxConnectionDistance) { let opacityValue = 1 - (distance / maxConnectionDistance); ctx.strokeStyle = `rgba(${lineColorBase}, ${opacityValue * 0.6})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke(); } } } }
+      function animateParticles() { if(!canvas || !ctx) return; ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(particle => { particle.update(); particle.draw(); }); connectParticles(); animationFrameId = requestAnimationFrame(animateParticles); }
+      function debounce(func, wait, immediate) { var timeout; return function() { var context = this, args = arguments; var later = function() { timeout = null; if (!immediate) func.apply(context, args); }; var callNow = immediate && !timeout; clearTimeout(timeout); timeout = setTimeout(later, wait); if (callNow) func.apply(context, args); }; };
+      const debouncedResize = debounce(() => { if(animationFrameId) cancelAnimationFrame(animationFrameId); setCanvasSize(); initParticles(); animateParticles(); }, 250);
+
+      // --- Event Listeners ---
+      if(langToggle) {
+        langToggle.addEventListener('click', () => {
+          const langOrder = ['en', 'pt', 'es', 'ja', 'zh'];
+          const currentIndex = langOrder.indexOf(currentLang);
+          currentLang = langOrder[(currentIndex + 1) % langOrder.length];
+          localStorage.setItem('lang', currentLang);
+          preloadImages(currentLang);
+          translatePage();
+        });
+      }
+
+      if(prevBtn) prevBtn.addEventListener('click', () => { prevSlide(); resetTimer(); });
+      if(nextBtn) nextBtn.addEventListener('click', () => { nextSlide(); resetTimer(); });
+      if(carouselTouchArea) {
+        carouselTouchArea.addEventListener('touchstart', handleTouchStart, { passive: true });
+        carouselTouchArea.addEventListener('touchmove', handleTouchMove, { passive: true });
+        carouselTouchArea.addEventListener('touchend', handleTouchEnd, { passive: true }); // Lógica de swipe/tap está aqui
+        carouselTouchArea.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+      }
+
+      // Removido listener de mouseenter/mouseleave do carrossel
+      // const carouselContainer = document.querySelector('.right-col');
+      // if(carouselContainer) {
+      //   carouselContainer.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+      //   carouselContainer.addEventListener('mouseleave', () => { resetTimer(); });
+      // }
+
+      window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+      window.addEventListener('resize', debouncedResize);
+
+      // --- Configuração Inicial ---
+      preloadImages(currentLang);
+      translatePage();
+      resetTimer(); // Inicia o timer pela primeira vez
+      if (canvas && ctx) {
+          setCanvasSize();
+          initParticles();
+          animateParticles();
+      }
+
+      // --- Lógica do Modal de Info (Atualizada) ---
+      // const infoModal = document.getElementById('info-modal'); // Definido globalmente
+      const infoModalOverlay = document.getElementById('modal-overlay');
+      const infoModalCloseBtn = document.getElementById('modal-close-btn');
+      const infoModalTitle = document.getElementById('modal-title');
+      const infoModalContent = document.getElementById('modal-content');
+      const infoModalTriggerLinks = document.querySelectorAll('footer nav a[data-modal-type]');
+      const modalData = {
+        contact: {
+          en: { title: "Contact", text: "<p>To get in touch, please send an email to: contact@dompii.com</p>" },
+          pt: { title: "Contato", text: "<p>Para entrar em contato, envie um email para: contact@dompii.com</p>" },
+          es: { title: "Contacto", text: "<p>Para ponerse en contacto, envíe un correo electrónico a: contact@dompii.com</p>" },
+          ja: { title: "お問い合わせ", text: "<p>連絡を取るには、次のメールアドレスにメールを送信してください: contact@dompii.com</p>" },
+          zh: { title: "联系方式", text: "<p>如需联系，请发送电子邮件至：contact@dompii.com</p>" }
+        }
+      };
+      function openInfoModal(type) {
+        if (!infoModal || !infoModalTitle || !infoModalContent || !modalData[type]) return;
+        clearInterval(autoSlideInterval); // Pausa o carrossel
+        const data = modalData[type][currentLang] || modalData[type]['en'];
+        if (!data) { console.error(`Modal data not found for type "${type}"...`); return; }
+        infoModalTitle.textContent = data.title;
+        infoModalContent.innerHTML = data.text;
+        infoModal.classList.remove('hidden');
+        const closeLabelBase = { en: 'Close modal', pt: 'Fechar modal', es: 'Cerrar modal', ja: 'モーダルを閉じる', zh: '关闭模式窗口' };
+        if(infoModalCloseBtn) infoModalCloseBtn.setAttribute('aria-label', closeLabelBase[currentLang] || closeLabelBase['en']);
+      }
+      function closeInfoModal() {
+          if (!infoModal) return;
+          infoModal.classList.add('hidden');
+          // Reinicia o timer SÓ SE o outro modal também estiver fechado
+          if (imageModal.classList.contains('hidden')) {
+              resetTimer();
+          }
+      }
+      infoModalTriggerLinks.forEach(link => { link.addEventListener('click', (event) => { event.preventDefault(); const type = link.getAttribute('data-modal-type'); if (type) { openInfoModal(type); } }); });
+      if (infoModalCloseBtn) { infoModalCloseBtn.addEventListener('click', closeInfoModal); }
+      if (infoModalOverlay) { infoModalOverlay.addEventListener('click', closeInfoModal); }
+
+
+      // --- Lógica do Modal de Imagem (Atualizada) ---
+      function openImageModal() {
+          // Removida verificação do flag blockClickAfterSwipe
+          if (!imageModal || !modalCarouselImg || !modalCarouselCaption) return;
+          clearInterval(autoSlideInterval); // Pausa o carrossel
+          modalCarouselImg.src = imagesArr()[idx];
+          modalCarouselCaption.textContent = captionsArr()[idx] || '';
+          imageModal.classList.remove('hidden');
+          const closeImgLabelBase = { en: 'Close image', pt: 'Fechar imagem', es: 'Cerrar imagen', ja: '画像を閉じる', zh: '关闭图片' };
+          if(imageModalCloseBtn) imageModalCloseBtn.setAttribute('aria-label', closeImgLabelBase[currentLang] || closeImgLabelBase['en']);
+      }
+      function closeImageModal() {
+          if (!imageModal) return;
+          imageModal.classList.add('hidden');
+          if(modalCarouselImg) modalCarouselImg.src = '';
+          if(modalCarouselCaption) modalCarouselCaption.textContent = '';
+          // Reinicia o timer SÓ SE o outro modal também estiver fechado
+          if (infoModal.classList.contains('hidden')) {
+              resetTimer();
+          }
+      }
+
+      // Adiciona listener de clique/toque na imagem do carrossel
+      if (imgEl) {
+          imgEl.addEventListener('click', openImageModal);
+      }
+
+      // Adiciona listeners para fechar o modal de imagem
+      if (imageModalCloseBtn) { imageModalCloseBtn.addEventListener('click', closeImageModal); }
+      if (imageModalOverlay) { imageModalOverlay.addEventListener('click', closeImageModal); }
+
+      // Listener global para fechar modais com Escape (Atualizado)
+      document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+              let closedModal = false;
+              if (imageModal && !imageModal.classList.contains('hidden')) {
+                  imageModal.classList.add('hidden');
+                  if(modalCarouselImg) modalCarouselImg.src = '';
+                  if(modalCarouselCaption) modalCarouselCaption.textContent = '';
+                  closedModal = true;
+              } else if (infoModal && !infoModal.classList.contains('hidden')) {
+                  infoModal.classList.add('hidden');
+                  closedModal = true;
+              }
+              // Se um modal foi fechado E ambos estão escondidos agora, reinicia o timer
+              if (closedModal && infoModal.classList.contains('hidden') && imageModal.classList.contains('hidden')) {
+                  resetTimer();
+              }
+          }
+      });
+
+
+    }); // Fim DOMContentLoaded
+  </script>
+</body>
+</html>
