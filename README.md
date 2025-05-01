@@ -49,7 +49,7 @@ This repository serves as the central hub for all DomPII-related modules.
 
 Curious about the philosophy and modular architecture behind DomPII?
 
-👉 Read the full [Whitepaper](./dompii-whitepaper_en.pdf) to explore how DomPII redefines self-directed learning using AI, the Model Context Protocol (MCP), and knowledge graph integration.
+👉 Read the full [Whitepaper](./docs/dompii-whitepaper_en.pdf) to explore how DomPII redefines self-directed learning using AI, the Model Context Protocol (MCP), and knowledge graph integration.
 
 ---
 
