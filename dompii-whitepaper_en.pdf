@@ -427,8 +427,8 @@ endobj
 endobj
 24 0 obj
 <<
-/Author (\(anonymous\)) /CreationDate (D:20250430132840-03'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20250430132840-03'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
-  /Subject (\(unspecified\)) /Title (\(anonymous\)) /Trapped /False
+/Author (Yan Vidal) /CreationDate (D:20250430182054-03'00') /Creator (ReportLab PDF Library) /Keywords () /ModDate (D:20250430182054-03'00') /Producer (ReportLab PDF Library) 
+  /Subject (DomPII Whitepaper) /Title (DomPII: A Self-Learning System with AI) /Trapped /False
 >>
 endobj
 25 0 obj
@@ -505,17 +505,17 @@ xref
 0000093067 00000 n 
 0000094424 00000 n 
 0000094494 00000 n 
-0000094778 00000 n 
-0000094869 00000 n 
-0000097447 00000 n 
-0000098964 00000 n 
-0000101957 00000 n 
-0000104595 00000 n 
-0000107383 00000 n 
+0000094787 00000 n 
+0000094878 00000 n 
+0000097456 00000 n 
+0000098973 00000 n 
+0000101966 00000 n 
+0000104604 00000 n 
+0000107392 00000 n 
 trailer
 <<
 /ID 
-[<085c5e440f62955c864d9c544e97ece2><085c5e440f62955c864d9c544e97ece2>]
+[<0140dd8260acf7e0c5fd220c64aa5cb1><0140dd8260acf7e0c5fd220c64aa5cb1>]
 % ReportLab generated PDF document -- digest (http://www.reportlab.com)
 
 /Info 24 0 R
@@ -523,5 +523,5 @@ trailer
 /Size 32
 >>
 startxref
-108088
+108097
 %%EOF
